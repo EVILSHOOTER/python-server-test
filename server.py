@@ -1,13 +1,14 @@
 import socket, time, pickle
+from os import environ
 
 HEADERSIZE = 10
 
-SERVER = socket.gethostname()
+SERVER = "0.0.0.0" #socket.gethostname()
 
 # object with IPv4 and TCP/IP
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 # bound to tuple (IP and port) - your server
-s.bind((SERVER, 1337)) # requires a port-forwarded computer
+s.bind((SERVER, environ["PORT"])) # requires a port-forwarded computer
 # prepare queue for incoming connections
 s.listen(5)
 
