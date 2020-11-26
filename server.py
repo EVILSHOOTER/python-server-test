@@ -10,7 +10,7 @@ print("app started!")
 # object with IPv4 and TCP/IP
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 # bound to tuple (IP and port) - your server
-s.bind((SERVER, environ.get("PORT"))) # requires a port-forwarded computer
+s.bind((SERVER, int(environ.get("PORT")))) # requires a port-forwarded computer
 # prepare queue for incoming connections
 s.listen(5)
 
