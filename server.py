@@ -17,7 +17,7 @@ s.listen(5)
 while True:
     # allow anybody connecting
     clientsocket, address = s.accept()
-    print(f"Connected with {address}")
+    print(f"Connected with {address}. Current Port: {environ.get("PORT")}")
 
     #msg = "welcom 2 server!"
     d = {1: "testing", 2: "message"}
