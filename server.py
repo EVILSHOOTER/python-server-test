@@ -1,23 +1,23 @@
 import socket, time, pickle
-from os import environ
 
 HEADERSIZE = 10
 
-SERVER = "0.0.0.0" #socket.gethostname()
-
-print("app started!")
+SERVER = ''
+# '' # for Linode
+#socket.gethostname() # for local
+PORT = 1337
 
 # object with IPv4 and TCP/IP
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 # bound to tuple (IP and port) - your server
-s.bind((SERVER, int(environ.get("PORT")))) # requires a port-forwarded computer
+s.bind((SERVER, PORT)) # requires a port-forwarded computer
 # prepare queue for incoming connections
 s.listen(5)
 
 while True:
     # allow anybody connecting
     clientsocket, address = s.accept()
-    print(f"Connected with {address}. Current Port: {environ.get('PORT')}")
+    print(f"Connected with {address}")
 
     #msg = "welcom 2 server!"
     d = {1: "testing", 2: "message"}
