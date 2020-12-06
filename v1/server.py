@@ -2,7 +2,7 @@ import socket, time, pickle
 
 HEADERSIZE = 10
 
-SERVER = ''
+SERVER = socket.gethostname()
 # '' # for Linode
 #socket.gethostname() # for local
 PORT = 1337
@@ -25,7 +25,7 @@ while True:
     print(msg)
     msg = bytes(f'{len(msg):<{HEADERSIZE}}', "utf-8") + msg
     clientsocket.send(msg)
-
+    clientsocket.send(msg)
 
     '''
     # test send with time

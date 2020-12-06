@@ -2,7 +2,7 @@ import socket, pickle
 
 HEADERSIZE = 10
 
-SERVER = '139.162.219.137'
+SERVER = socket.gethostname()
 # '139.162.219.137' # for Linode
 #socket.gethostname() # for local
 PORT = 1337
@@ -25,7 +25,7 @@ while True:
             new_msg = False
 
         full_msg += msg
-        print("piece: ", msg)
+        print("piece: ", msg, "len: ", len(full_msg)-HEADERSIZE)
 
         if len(full_msg)-HEADERSIZE == msg_len:
             print(f"FINAL MESSAGE: {full_msg[HEADERSIZE:]}")
