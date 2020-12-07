@@ -73,22 +73,28 @@ def handleServerMessages(msg):
         # v basically is starting the client afresh with a new connection really.
         threading.Thread(target=exchangeServer, args=(game_port,)).start()
     elif GAMEQUESTION_MSG in msg: # this is a game server.
+        global IN_GAME
         IN_GAME = True
         console("you're in a game.")
 
 def send_create_server_request():
+    console("server creation asked. you should join it automatically.")
     send_to_server(CREATESERVER_MSG)
     # ask ServerManager to create server. have it return key to you.
     # the key is returned and joinServer() runs.
 
 def send_join_server_request(key):
+    console("attempt to join server. if nothing happens, server doesn't exist.")
     send_to_server(f"{JOINSERVER_MSG} {key}")
     # ask ServerManager to join server with given key. it returns to you the port.
     # you autojoin with that port.
 
 def exchangeServer(new_port):
     disconnect()
-    time.sleep(1)  # let all messages return first.
+    time.sleep(.1)  # let all messages return first.
+
+    global IN_GAME
+    IN_GAME = False
 
     global sock
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -108,18 +114,11 @@ def exchangeServer(new_port):
         thread = threading.Thread(target=expectMessage)
         thread.start()
 
-        time.sleep(0.5) # let the thread start
+        time.sleep(.1) # let the thread start
         send_to_server(GAMEQUESTION_MSG) # is this a game?
-
-        if IN_GAME:
-            game()
-        else:
-            lobby()
 
     else: # return to lobby
         exchangeServer(PORT) # would this work if it's disconnecting from nothing?
-        lobby()
-
 
 
 # - your own code after here! -
@@ -147,15 +146,30 @@ def lobby():
         print("joining server... ")
         send_join_server_request(input("enter the key for that server: "))
     else:
-        print("invalid option")
+        print("invalid option - leaving lobby.")
         disconnect()
 
+    time.sleep(3)
+
 def game():
-    pass
+    text = input("type whatever u want: ")
+    # if u type !backtolobby, it runs exchangeServer(2000)?
+    if text == "!leave":
+        exchangeServer(2000)
+    else:
+        send_to_server(text)
 
-lobby()
+    time.sleep(3)
 
-#disconnect()
+while True:
+    try: #if server connection doesn't work, end loop
+        send_to_server("test message")
+    except:
+        break
+    if IN_GAME:
+        game()
+    else:
+        lobby()
 
 
 # honestly not proud of the use of time.sleep to wait for thread to die and messages to send.

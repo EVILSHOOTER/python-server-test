@@ -12,9 +12,7 @@ class GameServer(Server):
         for i in range(6):
             newKey += random.choice(string.digits + string.ascii_uppercase)
         #print(newKey)
-
         self.KEY = newKey
-        self.keyLOCK = False
 
         # this runs start(), which halts anything below.
         super().__init__(server, port)
@@ -36,21 +34,14 @@ class GameServer(Server):
         return self.PORT
 
     def returnKey(self):
-        # now we don't want the key returned anymore, so prevent use of this func.
-        if not self.keyLOCK:
-            self.keyLOCK = True
-            return self.KEY
-        else:
-            return "!NOKEY"
+        # used to be one time use, but realised that only the server can use this
+        return self.KEY
 
     def returnPlayers(self):
         return self.PLAYER_COUNT
 
     def returnMaxPlayers(self):
         return self.MAX_PLAYERS
-
-    def isGame(self):
-        return True
 
 
 # might the infrastructure dif on this one?
