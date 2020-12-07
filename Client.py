@@ -1,6 +1,6 @@
 import socket, threading, pickle, time
 
-SERVER = socket.gethostname()
+SERVER = '139.162.219.137' #socket.gethostname()
 PORT = 2000 # this is the main lobby port.
 
 HEADER_SIZE = 10
