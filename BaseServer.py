@@ -45,8 +45,6 @@ class Server:
 
     # handles individual connections
     def handle_client(self, connection, address):
-        self.console(f"new connection = {address}")
-
         counter = 0 # just for test purposes. counts individual total of client msgs.
         connected = True
         while connected:
@@ -68,13 +66,14 @@ class Server:
                     self.handleClientMessages(connection, address, msg)
 
                     counter += 1
-                    self.send_to_client(connection, f"msg received ({counter})")
+                    #self.send_to_client(connection, f"msg received ({counter})")
             #except:
             #    connected = False
             #    print(f"[SERVER]: Client message error. Connection cut with {address} -")
             #    self.console(f"Client message error. Connection cut with {address}")
 
         connection.close()
+        self.all_connections.remove(connection)
 
     def send_to_all_clients(self, msg): # e.g. useful for ticks.
         for con in self.all_connections:
@@ -92,12 +91,14 @@ class Server:
         while True:
             connection, address = self.sock.accept()
             self.all_connections.append(connection)
+            self.console(f"new connection = {address}")
             thread = threading.Thread(target=self.handle_client
                                       , args=(connection, address))
             thread.start()
             # -2 on active thread count because: main thread, start() thread. was -1 tho.
-            self.console(f"active connections = {threading.active_count()-2}")
-            self.send_to_all_clients(None) # clean-up all_connections
+            #self.console(f"active connections = {threading.active_count()-2}")
+            self.console(f"connected clients = {len(self.all_connections)}")
+            #self.send_to_all_clients(None) # clean-up all_connections
 
 #s = Server(socket.gethostname(), 6969)
 # above is more or less the base server script, but in OOP form.

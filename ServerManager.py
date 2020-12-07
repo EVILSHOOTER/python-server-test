@@ -18,7 +18,7 @@ class ServerManager(Server):
         s = GameServer(self.SERVER, self.PORT+self.SERVER_COUNTER) # this halts. how not?
         k = s.returnKey()
         # self.SERVERS.append(s)
-        self.SERVERS[k] = s # the server output now appears in brackets :/
+        self.SERVERS[k] = s
         # return key to client.
         self.send_to_client(connection, f"{self.JOINSERVER_MSG} {k}")
         # client gets key, and performs join function by themselves automatically.

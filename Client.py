@@ -1,4 +1,4 @@
-import socket, threading, pickle
+import socket, threading, pickle, time
 
 SERVER = socket.gethostname()
 PORT = 0 # this will change for individual game servers
@@ -28,16 +28,6 @@ def send_to_server(msg):
     sock.send(message)
 
 
-def handleServerMessages(msg):
-    if JOINSERVER_MSG in msg: # end of server creation process.
-        key = msg[len(JOINSERVER_MSG)+1:] # key received.
-        print("you got the key:", key)
-        send_join_server_request(key)
-    elif ENTERGAME_MSG in msg: # end of server join process
-        game_port = msg[len(ENTERGAME_MSG)+1:]
-        print("your server port is ", game_port)
-        attemptToJoinGame(game_port)
-
 def expectMessage():
     expecting_messages = True
     while expecting_messages:
@@ -47,15 +37,18 @@ def expectMessage():
         if msg_len:
             msg_len = int(msg_len)
             msg = sock.recv(msg_len)
+            #print(msg_len)
+            #print(msg)
             msg = pickle.loads(msg)
             print(f"[SERVER]: {msg}") # test.
 
             # if statements here for all the actions u want!
-            if msg == DISCONNECT_MSG:
+            if DISCONNECT_MSG in msg:
                 expecting_messages = False
-                print("you've been disconnected.")
+                console("you've been disconnected.")
             # any other specific messages, send to another function.
             handleServerMessages(msg)
+            #threading.Thread(target=handleServerMessages, args=(msg,)).start() # no halts.
 
 # use threading and make while loop to always await server messages
 thread = threading.Thread(target=expectMessage)
@@ -64,40 +57,49 @@ thread.start()
 def disconnect():
     send_to_server(DISCONNECT_MSG)
 
+def console(msg):
+    print("[CLIENT]:", msg)
 
 # game server functions.
+def handleServerMessages(msg):
+    if JOINSERVER_MSG in msg: # end of server creation process.
+        key = msg[len(JOINSERVER_MSG)+1:] # key received.
+        console(f"you got the key: {key}")
+        send_join_server_request(key)
+    elif ENTERGAME_MSG in msg: # end of server join process
+        game_port = msg[len(ENTERGAME_MSG)+1:]
+        console(f"your server port is {game_port}")
+        #attemptToJoinGame(game_port) # thread this? because it basically starts anew.
+        threading.Thread(target=attemptToJoinGame, args=(game_port,)).start()
+
 def send_create_server_request():
-    # ask ServerManager to create server. have it return key to you.
-    print("asking server to create me a server...")
     send_to_server(CREATESERVER_MSG)
+    # ask ServerManager to create server. have it return key to you.
     # the key is returned and joinServer() runs.
 
 def send_join_server_request(key):
-    # ask ServerManager to join server with given key. it returns to you that u joined
-    print("asking server to join...")
-    # to server: !JOINSERVER *key*
     send_to_server(f"{JOINSERVER_MSG} {key}")
-    # to client: !SERVERPORT *port*
-    # client: disconnect from ServerManager. try: connect to port.
-    # also client: if message received: fail, full or non-existent, return to GameManager.
-
-    # when in-game, set a variable for IN_GAME to true, so disconnect to lobby safely l8r.
+    # ask ServerManager to join server with given key. it returns to you the port.
+    # you autojoin with that port.
 
 def attemptToJoinGame(game_port):
     disconnect()
+    time.sleep(1)  # let all messages return first.
 
     global PORT
     global sock
     PORT = int(game_port)
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-    print("attempt to join game server",game_port)
+    console(f"attempt to join different server: {game_port}")
     sock.connect((SERVER, PORT))
+    console("connected.")
     thread = threading.Thread(target=expectMessage)
     thread.start()
 
     while True: # test
         send_to_server(input())
+
 
 # - your own code after here! -
 # i'm doing a basic menu to showcase entering and leaving the server via ServerManager
@@ -124,6 +126,6 @@ elif option == 2:
     send_join_server_request(input("enter the key for that server: "))
 else:
     print("invalid option")
+    disconnect()
 
 #disconnect()
-#

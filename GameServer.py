@@ -20,9 +20,10 @@ class GameServer(Server):
         super().__init__(server, port)
 
     def console(self, msg):
+        new_msg = (f"[SERVER-{self.PORT}]: {msg}")
+        # inspiration for future: send tuples for objects. e.g. (f"[SERVER-{self.PORT}]:", msg)
+        #print(new_msg)
         # to make things cleaner, GameServer output are sent to clients.
-        new_msg = (f"[SERVER-{self.PORT}]:", msg)
-        print(new_msg)
         self.send_to_all_clients(new_msg)
 
     def returnPort(self):
