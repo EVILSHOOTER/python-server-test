@@ -19,6 +19,11 @@ class GameServer(Server):
         # this runs start(), which halts anything below.
         super().__init__(server, port)
 
+    #
+    def handleClientMessages(self, connection, address, msg):
+        if self.GAMEQUESTION_MSG in msg:
+            self.send_to_client(connection, self.GAMEQUESTION_MSG)
+
     def console(self, msg):
         new_msg = (f"[SERVER-{self.PORT}]: {msg}")
         # inspiration for future: send tuples for objects. e.g. (f"[SERVER-{self.PORT}]:", msg)
@@ -26,6 +31,7 @@ class GameServer(Server):
         # to make things cleaner, GameServer output are sent to clients.
         self.send_to_all_clients(new_msg)
 
+    # return functions.
     def returnPort(self):
         return self.PORT
 
@@ -43,8 +49,11 @@ class GameServer(Server):
     def returnMaxPlayers(self):
         return self.MAX_PLAYERS
 
+    def isGame(self):
+        return True
+
 
 # might the infrastructure dif on this one?
 # have join and leave functions?
 # send_to_game functions?
-#
+# if game is full, act as spectator? kick player out?

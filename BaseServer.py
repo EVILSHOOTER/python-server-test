@@ -14,6 +14,7 @@ class Server:
         self.CREATESERVER_MSG = "!CREATESERVER"
         self.JOINSERVER_MSG = "!JOINSERVER"
         self.ENTERGAME_MSG = "!ENTERGAME"
+        self.GAMEQUESTION_MSG = "!ISGAME"
 
         self.all_connections = []
 
@@ -40,7 +41,6 @@ class Server:
 
     # any other specific messages. overriden by children.
     def handleClientMessages(self, connection, address, msg):
-        #raise NotImplementedError("Must be overriden")
         pass
 
     # handles individual connections
@@ -48,7 +48,7 @@ class Server:
         counter = 0 # just for test purposes. counts individual total of client msgs.
         connected = True
         while connected:
-            #try: # capture client disconnecting prematurely.
+            try: # capture client disconnecting prematurely.
                 # first message = length of message
                 msg_len = connection.recv(self.HEADER_SIZE).decode(self.FORMAT)
                 # second message = data
@@ -67,10 +67,9 @@ class Server:
 
                     counter += 1
                     #self.send_to_client(connection, f"msg received ({counter})")
-            #except:
-            #    connected = False
-            #    print(f"[SERVER]: Client message error. Connection cut with {address} -")
-            #    self.console(f"Client message error. Connection cut with {address}")
+            except:
+                connected = False
+                self.console(f"Client message error. Connection cut with {address}")
 
         connection.close()
         self.all_connections.remove(connection)
@@ -96,7 +95,6 @@ class Server:
                                       , args=(connection, address))
             thread.start()
             # -2 on active thread count because: main thread, start() thread. was -1 tho.
-            #self.console(f"active connections = {threading.active_count()-2}")
             self.console(f"connected clients = {len(self.all_connections)}")
             #self.send_to_all_clients(None) # clean-up all_connections
 

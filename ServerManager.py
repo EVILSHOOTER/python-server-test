@@ -27,20 +27,13 @@ class ServerManager(Server):
         key = msg[len(self.JOINSERVER_MSG) + 1:]
         self.console(f"[{address}] wants to join ({key})")
 
-        # find server. does it exist?
         if key in self.SERVERS:
             game_port = self.SERVERS[key].returnPort()
             self.console(f"SERVER FOUND FOR PLAYER: {game_port}")
             # hand player the port. now they try to go there themselves.
             self.send_to_client(connection, f"{self.ENTERGAME_MSG} {game_port}")
-
-            # should these checks even be performed?
-            # OR should the game just kick u out? and you auto join lobby again?
-            # is it full?
-            # is it empty? delete it anyway.
         else:
             self.console(f"server NOT found for player: {key}")
-
 
     # any other specific messages. this overrides the parent one.
     def handleClientMessages(self, connection, address, msg):

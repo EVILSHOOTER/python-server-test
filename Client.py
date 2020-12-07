@@ -1,10 +1,7 @@
 import socket, threading, pickle, time
 
 SERVER = socket.gethostname()
-PORT = 0 # this will change for individual game servers
-
-LOBBY_PORT = 2000
-PORT = LOBBY_PORT
+PORT = 2000 # this is the main lobby port.
 
 HEADER_SIZE = 10
 FORMAT = "utf-8"
@@ -12,10 +9,14 @@ DISCONNECT_MSG = "!GETOUT"
 CREATESERVER_MSG = "!CREATESERVER"
 JOINSERVER_MSG = "!JOINSERVER"
 ENTERGAME_MSG = "!ENTERGAME"
+GAMEQUESTION_MSG = "!ISGAME"
+
+IN_GAME = False
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 sock.connect((SERVER, PORT))
 
+# server - client stuff.
 def send_to_server(msg):
     # second message - the data
     message = pickle.dumps(msg)
@@ -26,7 +27,6 @@ def send_to_server(msg):
 
     sock.send(send_len)
     sock.send(message)
-
 
 def expectMessage():
     expecting_messages = True
@@ -48,10 +48,8 @@ def expectMessage():
                 console("you've been disconnected.")
             # any other specific messages, send to another function.
             handleServerMessages(msg)
-            #threading.Thread(target=handleServerMessages, args=(msg,)).start() # no halts.
 
-# use threading and make while loop to always await server messages
-thread = threading.Thread(target=expectMessage)
+thread = threading.Thread(target=expectMessage) # start waiting for messages.
 thread.start()
 
 def disconnect():
@@ -62,6 +60,9 @@ def console(msg):
 
 # game server functions.
 def handleServerMessages(msg):
+    if "[SERVER" in msg: # ignore reposts.
+        return
+
     if JOINSERVER_MSG in msg: # end of server creation process.
         key = msg[len(JOINSERVER_MSG)+1:] # key received.
         console(f"you got the key: {key}")
@@ -69,8 +70,11 @@ def handleServerMessages(msg):
     elif ENTERGAME_MSG in msg: # end of server join process
         game_port = msg[len(ENTERGAME_MSG)+1:]
         console(f"your server port is {game_port}")
-        #attemptToJoinGame(game_port) # thread this? because it basically starts anew.
-        threading.Thread(target=attemptToJoinGame, args=(game_port,)).start()
+        # v basically is starting the client afresh with a new connection really.
+        threading.Thread(target=exchangeServer, args=(game_port,)).start()
+    elif GAMEQUESTION_MSG in msg: # this is a game server.
+        IN_GAME = True
+        console("you're in a game.")
 
 def send_create_server_request():
     send_to_server(CREATESERVER_MSG)
@@ -82,23 +86,40 @@ def send_join_server_request(key):
     # ask ServerManager to join server with given key. it returns to you the port.
     # you autojoin with that port.
 
-def attemptToJoinGame(game_port):
+def exchangeServer(new_port):
     disconnect()
     time.sleep(1)  # let all messages return first.
 
-    global PORT
     global sock
-    PORT = int(game_port)
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-    console(f"attempt to join different server: {game_port}")
-    sock.connect((SERVER, PORT))
-    console("connected.")
-    thread = threading.Thread(target=expectMessage)
-    thread.start()
+    console(f"attempt to join different server: {new_port}")
+    connect_state = "connecting"
+    try:
+        sock.connect((SERVER, int(new_port)))
+        connect_state = "connected"
+    except: # cannot connect
+        console(f"FAILED connecting to server: {new_port}")
+        connect_state = "failed"
 
-    while True: # test
-        send_to_server(input())
+    if connect_state == "connected":
+        # pass state.
+        console("connected.")
+        thread = threading.Thread(target=expectMessage)
+        thread.start()
+
+        time.sleep(0.5) # let the thread start
+        send_to_server(GAMEQUESTION_MSG) # is this a game?
+
+        if IN_GAME:
+            game()
+        else:
+            lobby()
+
+    else: # return to lobby
+        exchangeServer(PORT) # would this work if it's disconnecting from nothing?
+        lobby()
+
 
 
 # - your own code after here! -
@@ -116,16 +137,25 @@ def choiceMaker(options):
         option = 0
     return option
 
-option = choiceMaker(["Create a server", "Join a server"])
+def lobby():
+    option = choiceMaker(["Create a server", "Join a server"])
 
-if option == 1:
-    print("creating server...")
-    send_create_server_request()
-elif option == 2:
-    print("joining server... ")
-    send_join_server_request(input("enter the key for that server: "))
-else:
-    print("invalid option")
-    disconnect()
+    if option == 1:
+        print("creating server...")
+        send_create_server_request()
+    elif option == 2:
+        print("joining server... ")
+        send_join_server_request(input("enter the key for that server: "))
+    else:
+        print("invalid option")
+        disconnect()
+
+def game():
+    pass
+
+lobby()
 
 #disconnect()
+
+
+# honestly not proud of the use of time.sleep to wait for thread to die and messages to send.
