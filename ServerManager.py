@@ -44,5 +44,4 @@ class ServerManager(Server):
             self.joinServer(connection, address, msg)
 
 # - your code after here! -
-s = ServerManager(socket.gethostname(), 2000)
-#
+s = ServerManager('', 2000)
