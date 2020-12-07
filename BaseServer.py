@@ -13,7 +13,7 @@ class Server:
         self.DISCONNECT_MSG = "!GETOUT"
         self.CREATESERVER_MSG = "!CREATESERVER"
         self.JOINSERVER_MSG = "!JOINSERVER"
-        self.JOININGGAME_MSG = "!JOININGGAME"
+        self.ENTERGAME_MSG = "!ENTERGAME"
 
         self.all_connections = []
 
@@ -23,6 +23,9 @@ class Server:
         #self.start()
         t = threading.Thread(target=self.start, args=()) # nice.
         t.start()
+
+    def console(self, msg): # easier output. overridable too.
+        print(f"[SERVER-{self.PORT}]:", msg)
 
     def send_to_client(self, connection, msg):
         # second message - the data
@@ -38,13 +41,13 @@ class Server:
     # any other specific messages. overriden by children.
     def handleClientMessages(self, connection, address, msg):
         #raise NotImplementedError("Must be overriden")
-        print("base server!!")
+        pass
 
     # handles individual connections
     def handle_client(self, connection, address):
-        print(f"[SERVER-{self.PORT}]: new connection = {address}")
+        self.console(f"new connection = {address}")
 
-        counter = 0 # just test purposes. count of all msgs senT back.
+        counter = 0 # just for test purposes. counts individual total of client msgs.
         connected = True
         while connected:
             #try: # capture client disconnecting prematurely.
@@ -55,12 +58,12 @@ class Server:
                     msg_len = int(msg_len)
                     msg = connection.recv(msg_len)
                     msg = pickle.loads(msg)
-                    print(f"[{address}]: {msg}")
+                    self.console(f"[{address}] said: {msg}")
 
                     if msg == self.DISCONNECT_MSG:
                         connected = False
                         self.send_to_client(connection, self.DISCONNECT_MSG)
-                        print(f"[{address}] has disconnected")
+                        self.console(f"[{address}] has disconnected")
                     # handle any other messages.
                     self.handleClientMessages(connection, address, msg)
 
@@ -69,6 +72,7 @@ class Server:
             #except:
             #    connected = False
             #    print(f"[SERVER]: Client message error. Connection cut with {address} -")
+            #    self.console(f"Client message error. Connection cut with {address}")
 
         connection.close()
 
@@ -83,17 +87,18 @@ class Server:
 
     # handles new connections
     def start(self):
-        print(f"[SERVER-{self.PORT}]: Hello world!")
         self.sock.listen()
-        print(f"[SERVER-{self.PORT}]: listening on {self.SERVER}.")
+        self.console(f"Hello world! Listening on {self.SERVER}.")
         while True:
             connection, address = self.sock.accept()
             self.all_connections.append(connection)
             thread = threading.Thread(target=self.handle_client
                                       , args=(connection, address))
             thread.start()
-            print(f"[SERVER-{self.PORT}]: active connections = {threading.active_count()-1}")
+            # -2 on active thread count because: main thread, start() thread. was -1 tho.
+            self.console(f"active connections = {threading.active_count()-2}")
             self.send_to_all_clients(None) # clean-up all_connections
 
 #s = Server(socket.gethostname(), 6969)
 # above is more or less the base server script, but in OOP form.
+#
