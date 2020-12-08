@@ -1,6 +1,6 @@
 import socket, threading, pickle, time
 
-SERVER = '139.162.219.137' #socket.gethostname()
+SERVER = '139.162.219.137'
 PORT = 2000 # this is the main lobby port.
 
 HEADER_SIZE = 10
@@ -28,9 +28,11 @@ def send_to_server(msg):
     sock.send(send_len)
     sock.send(message)
 
+connected = False
 def expectMessage():
-    expecting_messages = True
-    while expecting_messages:
+    global connected
+    connected = True
+    while connected:
         # first message = length of message
         msg_len = sock.recv(HEADER_SIZE).decode(FORMAT)
         # second message = data
@@ -44,7 +46,7 @@ def expectMessage():
 
             # if statements here for all the actions u want!
             if DISCONNECT_MSG in msg:
-                expecting_messages = False
+                connected = False
                 console("you've been disconnected.")
             # any other specific messages, send to another function.
             handleServerMessages(msg)
@@ -161,11 +163,7 @@ def game():
 
     time.sleep(3)
 
-while True:
-    try: #if server connection doesn't work, end loop
-        send_to_server("test message")
-    except:
-        break
+while connected:
     if IN_GAME:
         game()
     else:
