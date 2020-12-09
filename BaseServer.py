@@ -1,7 +1,5 @@
 import socket, threading, pickle
 
-import abc #force handle messages to be made.
-
 class Server:
 
     def __init__(self, server, port):
@@ -91,13 +89,11 @@ class Server:
             connection, address = self.sock.accept()
             self.all_connections.append(connection)
             self.console(f"new connection = {address}")
+            self.console(f"connected clients = {len(self.all_connections)}")
             thread = threading.Thread(target=self.handle_client
                                       , args=(connection, address))
             thread.start()
-            # -2 on active thread count because: main thread, start() thread. was -1 tho.
-            self.console(f"connected clients = {len(self.all_connections)}")
             #self.send_to_all_clients(None) # clean-up all_connections
 
 #s = Server(socket.gethostname(), 6969)
-# above is more or less the base server script, but in OOP form.
-#
+# you could create a server with this but idk what the point of that is

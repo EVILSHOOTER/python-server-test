@@ -44,5 +44,4 @@ class ServerManager(Server):
             self.joinServer(connection, address, msg)
 
 # - your code after here! -
-s = ServerManager('', 2000)
-#
+server = ServerManager('', 2000)
