@@ -1,4 +1,3 @@
-import socket, threading, pickle
 import random, string
 from BaseServer import Server
 
@@ -29,6 +28,10 @@ class GameServer(Server):
         # to make things cleaner, GameServer output are sent to clients.
         self.send_to_all_clients(new_msg)
 
+    def closeServer(self): # this function is only useful for gameservers, tbh.
+        self.send_to_all_clients(f"{self.ENTERGAME_MSG} {2000}") # exchangeServers(2000)
+        self.SERVER_ON = False # close start() thread
+
     # return functions.
     def returnPort(self):
         return self.PORT
@@ -38,7 +41,7 @@ class GameServer(Server):
         return self.KEY
 
     def returnPlayers(self):
-        return self.PLAYER_COUNT
+        return len(self.all_connections)
 
     def returnMaxPlayers(self):
         return self.MAX_PLAYERS

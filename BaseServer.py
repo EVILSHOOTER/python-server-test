@@ -15,6 +15,7 @@ class Server:
         self.GAMEQUESTION_MSG = "!ISGAME"
 
         self.all_connections = []
+        self.SERVER_ON = True # when False, start() stops running.
 
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.bind((self.SERVER, self.PORT))
@@ -85,7 +86,7 @@ class Server:
     def start(self):
         self.sock.listen()
         self.console(f"Hello world! Listening on {self.SERVER}.")
-        while True:
+        while self.SERVER_ON:
             connection, address = self.sock.accept()
             self.all_connections.append(connection)
             self.console(f"new connection = {address}")

@@ -1,4 +1,3 @@
-import socket, threading, pickle
 from BaseServer import Server
 from GameServer import GameServer
 
@@ -11,7 +10,19 @@ class ServerManager(Server):
         #this runs start(), which halts anything below.
         super().__init__(server, port)
 
+    def removeEmptyServers(self):
+        empty_counter = 0
+        for k, serv in self.SERVERS.items():
+            self.console(serv)
+            if serv.returnPlayers() <= 0:
+                serv.closeServer()
+                self.SERVERS[k] = None # fuhggedaboutit
+                empty_counter += 1
+        self.console(f"{empty_counter} empty server(s) removed")
+
     def createServer(self, connection, address):
+        self.removeEmptyServers() # a lil extra here: remove empty servers.
+
         self.console(f"[{address}] wants to create a server")
         # create server object. get its key. server should have a STATUS var tbh.
         self.SERVER_COUNTER += 1
